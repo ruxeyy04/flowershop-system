@@ -224,42 +224,7 @@
 
                                                             <form action="addcart.php" method="get">
                                                                 <div class="sidebar-widget-item border-0 p-0 mb-4">
-                                                                    <h4 class="sidebar-widget-item__title">
-                                                                        Color
-                                                                    </h4>
-                                                                    <?php
-                                                                    $color = $row['color']; // assuming $color contains a comma-separated list of colors
-
-                                                                    // Convert the comma-separated list to an array
-                                                                    $colors = explode(',', $color);
-
-                                                                    $availableColors = [
-                                                                        'blue' => 'Blue',
-                                                                        'bronze' => 'Bronze',
-                                                                        'green' => 'Green',
-                                                                        'pink' => 'Pink',
-                                                                        'black' => 'Black',
-                                                                        'polar-blue' => 'Polar Blue',
-                                                                        'red' => 'Red',
-                                                                        'white' => 'White',
-                                                                        'yellow' => 'Yellow'
-                                                                    ];
-                                                                    ?>
-
-                                                                    <div class="sidebar-widget-item__filter">
-                                                                        <ul class="sidebar-widget-item__color">
-                                                                            <?php foreach ($availableColors as $colorKey => $colorName) : ?>
-                                                                                <?php if (in_array($colorName, $colors)) : ?>
-                                                                                    <li>
-                                                                                        <input type="checkbox" name="color[]" id="<?= $colorKey ?><?= $row['prod_no'] ?>" value="<?= $colorName ?>">
-                                                                                        <label for="<?= $colorKey ?><?= $row['prod_no'] ?>">
-                                                                                            <span class="<?= $colorKey ?>"></span><?= $colorName ?>
-                                                                                        </label>
-                                                                                    </li>
-                                                                                <?php endif; ?>
-                                                                            <?php endforeach; ?>
-                                                                        </ul>
-                                                                    </div>
+                                                                 
                                                                 </div>
                                                                 <div class="product-single-content__quantity-add-to-cart">
                                                                     <div class="product-single-content__quantity product-quantity">
@@ -285,12 +250,6 @@
                                                             <div class="label">Categories:</div>
                                                             <div class="content">
                                                                 <a href="#"><?= $row['category_name'] ?></a>
-                                                            </div>
-                                                        </div>
-                                                        <div class="product-single-content__meta--item">
-                                                            <div class="label">Available Colors:</div>
-                                                            <div class="content">
-                                                                <a href="#"><?= $row['color'] ?></a>
                                                             </div>
                                                         </div>
                                                     </div>

@@ -12,7 +12,7 @@
         if (isset($_SESSION['userid'])) {
             $userId = $_SESSION['userid'];
             // Assuming you have a connection to the database in $conn
-            $query = "SELECT carts.*, carts.quantity AS cart_quant, carts.color AS cart_color, products.*, carts.quantity AS cart_quantity
+            $query = "SELECT carts.*, carts.quantity AS cart_quant, products.*, carts.quantity AS cart_quantity
               FROM carts 
               JOIN products ON carts.prod_no = products.prod_no 
               WHERE carts.userid = ?";
@@ -51,7 +51,6 @@
                                         <span class="offcanvas-cart-item__quantity">
                                         <?=$row['cart_quant']?> × ₱<?=$row['price']?>
                                         </span>
-                                        <small><?=$row['cart_color']?></small>
                                     </div>
                                     <a class="offcanvas-cart-item__remove" href="removecart.php?cart_id=<?= $row['cart_id'] ?>" aria-label="remove">
                                         <i class="lastudioicon-e-remove"></i>
