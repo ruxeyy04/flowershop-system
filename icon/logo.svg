@@ -1,0 +1,31 @@
+<svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect x="0" y="0" width="500" height="200" fill="#ffffff" fill-opacity="0"/>
+  
+  <!-- Box Element (moved to center perfectly above text) -->
+  <rect x="205" y="40" width="90" height="20" rx="4" fill="#333333" stroke="#333333" stroke-width="1"/>
+  <rect x="215" y="30" width="70" height="10" rx="3" fill="#333333" stroke="#333333" stroke-width="1" fill-opacity="0.8"/>
+  <line x1="220" y1="40" x2="280" y2="40" stroke="#ffffff" stroke-width="1" stroke-dasharray="3,2"/>
+  
+  <!-- Main Logo Text (perfectly centered) -->
+  <text x="250" y="100" font-family="Arial, sans-serif" font-size="40" font-weight="bold" text-anchor="middle" fill="#333333">BLOSSOM BOX</text>
+  
+  <!-- Tagline (aligned with main text) -->
+  <text x="250" y="130" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="#666666">Feel the blossoms of the flowers</text>
+  
+  <!-- Decorative Line (proper width and positioning) -->
+  <line x1="150" y1="150" x2="350" y2="150" stroke="#333333" stroke-width="1"/>
+  
+  <!-- Left Floral Element (properly positioned) -->
+  <circle cx="140" cy="100" r="8" fill="#333333" fill-opacity="0.9"/>
+  <path d="M140,92 Q130,80 125,95 Q120,75 140,75 Q160,75 155,95 Q150,80 140,92" fill="#333333" fill-opacity="0.7"/>
+  
+  <!-- Right Floral Element (properly positioned and mirrored) -->
+  <circle cx="360" cy="100" r="8" fill="#333333" fill-opacity="0.9"/>
+  <path d="M360,92 Q370,80 375,95 Q380,75 360,75 Q340,75 345,95 Q350,80 360,92" fill="#333333" fill-opacity="0.7"/>
+  
+  <!-- Subtle Decorative Elements (for balance) -->
+  <circle cx="250" cy="175" r="3" fill="#333333"/>
+  <circle cx="230" cy="175" r="2" fill="#666666"/>
+  <circle cx="270" cy="175" r="2" fill="#666666"/>
+</svg>
