@@ -90,7 +90,7 @@ if (!isset($_SESSION['userid'])) {
                                     <span class="status"></span><span class="ml-2"><?=$userinfo['usertype']?></span>
                                 </div>
                                 <a class="dropdown-item" href="profile.php"><i class="fas fa-user mr-2"></i>Profile Setting</a>
-                                <a class="dropdown-item" href="?logout"><i class="fas fa-power-off mr-2"></i>Logout</a>
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#adminLogoutModal"><i class="fas fa-power-off mr-2"></i>Logout</a>
                             </div>
                         </li>
                     </ul>
@@ -112,3 +112,24 @@ if (!isset($_SESSION['userid'])) {
     <!-- wrapper  -->
     <!-- ============================================================== -->
     <div class="dashboard-wrapper">
+
+<!-- Admin Logout Confirmation Modal -->
+<div class="modal fade" id="adminLogoutModal" tabindex="-1" role="dialog" aria-labelledby="adminLogoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="adminLogoutModalLabel">Confirm Logout</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to logout?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+        <a href="?logout" class="btn btn-primary">Yes</a>
+      </div>
+    </div>
+  </div>
+</div>
