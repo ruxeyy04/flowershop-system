@@ -17,9 +17,28 @@ $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 8;
 $search = isset($_GET['search']) ? $_GET['search'] : '';
 
 $total_rows_sql = "SELECT COUNT(*) AS total FROM products a INNER JOIN category b ON a.category_id=b.category_id";
+$where_added = false;
 
 if (!empty($search)) {
     $total_rows_sql .= " WHERE prod_name LIKE '%$search%'";
+    $where_added = true;
+}
+
+if (isset($_GET['category']) && is_array($_GET['category']) && !empty($_GET['category'])) {
+    $selected_categories = $_GET['category'];
+
+    $escaped_categories = array_map(function ($category) use ($conn) {
+        return mysqli_real_escape_string($conn, $category);
+    }, $selected_categories);
+
+    $category_list = "'" . implode("','", $escaped_categories) . "'";
+
+    if ($where_added) {
+        $total_rows_sql .= " AND b.category_name IN ($category_list)";
+    } else {
+        $total_rows_sql .= " WHERE b.category_name IN ($category_list)";
+        $where_added = true;
+    }
 }
 
 if (isset($_GET['price'])) {
@@ -29,83 +48,62 @@ if (isset($_GET['price'])) {
         $max_price = filter_var(str_replace('₱', '', $price_range[1]), FILTER_VALIDATE_FLOAT);
 
         if ($min_price !== false && $max_price !== false && $min_price >= 0 && $max_price >= $min_price) {
-            if (!empty($search)) {
+            if ($where_added) {
                 $total_rows_sql .= " AND ";
             } else {
                 $total_rows_sql .= " WHERE ";
+                $where_added = true;
             }
             $total_rows_sql .= " price BETWEEN $min_price AND $max_price";
         }
     }
 }
-if (isset($_GET['category'])) {
-    $selected_categories = $_GET['category'];
 
+$total_items_query = "SELECT COUNT(*) as total FROM products a INNER JOIN category b ON a.category_id=b.category_id";
+$where_added = false;
+
+if (!empty($search)) {
+    $total_items_query .= " WHERE a.prod_name LIKE '%$search%'";
+    $where_added = true;
+}
+
+if (isset($_GET['category']) && is_array($_GET['category']) && !empty($_GET['category'])) {
+    $selected_categories = $_GET['category'];
+    
     $escaped_categories = array_map(function ($category) use ($conn) {
         return mysqli_real_escape_string($conn, $category);
     }, $selected_categories);
-
+    
     $category_list = "'" . implode("','", $escaped_categories) . "'";
-
-    if (!empty($selected_categories)) {
-        $total_rows_sql .= " WHERE b.category_name IN ($category_list)";
+    
+    if ($where_added) {
+        $total_items_query .= " AND b.category_name IN ($category_list)";
+    } else {
+        $total_items_query .= " WHERE b.category_name IN ($category_list)";
+        $where_added = true;
     }
 }
 
-if (!empty($search)) {
-    $total_items_query = "SELECT COUNT(*) as total FROM products WHERE prod_name LIKE ?";
-    if (isset($_GET['price'])) {
-        $price_range = explode(' - ', $_GET['price']);
-        if (count($price_range) === 2) {
-            $min_price = filter_var(str_replace('₱', '', $price_range[0]), FILTER_VALIDATE_FLOAT);
-            $max_price = filter_var(str_replace('₱', '', $price_range[1]), FILTER_VALIDATE_FLOAT);
-
-            // Validate and add price range condition
-            if ($min_price !== false && $max_price !== false && $min_price >= 0 && $max_price >= $min_price) {
-                $total_items_query .= " AND price BETWEEN $min_price AND $max_price";
+if (isset($_GET['price'])) {
+    $price_range = explode(' - ', $_GET['price']);
+    if (count($price_range) === 2) {
+        $min_price = filter_var(str_replace('₱', '', $price_range[0]), FILTER_VALIDATE_FLOAT);
+        $max_price = filter_var(str_replace('₱', '', $price_range[1]), FILTER_VALIDATE_FLOAT);
+        
+        if ($min_price !== false && $max_price !== false && $min_price >= 0 && $max_price >= $min_price) {
+            if ($where_added) {
+                $total_items_query .= " AND a.price BETWEEN $min_price AND $max_price";
+            } else {
+                $total_items_query .= " WHERE a.price BETWEEN $min_price AND $max_price";
+                $where_added = true;
             }
         }
     }
-    $stmt = $conn->prepare($total_items_query);
-    $like_search_term = "%" . $search . "%";
-    $stmt->bind_param("s", $like_search_term);
-} else {
-    $total_items_query = "SELECT COUNT(*) as total FROM products a INNER JOIN category b ON a.category_id=b.category_id";
-    if (isset($_GET['price'])) {
-        $price_range = explode(' - ', $_GET['price']);
-        if (count($price_range) === 2) {
-            $min_price = filter_var(str_replace('₱', '', $price_range[0]), FILTER_VALIDATE_FLOAT);
-            $max_price = filter_var(str_replace('₱', '', $price_range[1]), FILTER_VALIDATE_FLOAT);
-
-            // Validate and add price range condition
-            if ($min_price !== false && $max_price !== false && $min_price >= 0 && $max_price >= $min_price) {
-                $total_items_query .= " WHERE price BETWEEN $min_price AND $max_price";
-            }
-        }
-    }
-    if (isset($_GET['category'])) {
-        $selected_categories = $_GET['category'];
-
-        $escaped_categories = array_map(function ($category) use ($conn) {
-            return mysqli_real_escape_string($conn, $category);
-        }, $selected_categories);
-
-        $category_list = "'" . implode("','", $escaped_categories) . "'";
-
-        if (!empty($selected_categories)) {
-            $total_items_query .= " WHERE b.category_name IN ($category_list)";
-        }
-    }
-
-
-    $stmt = $conn->prepare($total_items_query);
 }
 
-$stmt->execute();
-$total_items_result = $stmt->get_result();
-$total_items_row = $total_items_result->fetch_assoc();
+$result_total_items = $conn->query($total_items_query);
+$total_items_row = $result_total_items->fetch_assoc();
 $total_items = $total_items_row['total'];
-$stmt->close();
 
 $total_pages = ceil($total_items / $limit);
 
@@ -121,11 +119,14 @@ $offset = ($page - 1) * $limit;
 // Sort by prod_no
 $sortby_column  = isset($_GET['sortby']) ? $_GET['sortby'] : 'prod_name';
 $sql = "SELECT a.*, b.category_name FROM products a INNER JOIN category b ON a.category_id=b.category_id";
+$where_added = false;
 
 if (!empty($search)) {
-    $sql .= " WHERE prod_name LIKE '%$search%'";
+    $sql .= " WHERE a.prod_name LIKE '%$search%'";
+    $where_added = true;
 }
-if (isset($_GET['category'])) {
+
+if (isset($_GET['category']) && is_array($_GET['category']) && !empty($_GET['category'])) {
     $selected_categories = $_GET['category'];
 
     $escaped_categories = array_map(function ($category) use ($conn) {
@@ -134,11 +135,13 @@ if (isset($_GET['category'])) {
 
     $category_list = "'" . implode("','", $escaped_categories) . "'";
 
-    if (!empty($selected_categories)) {
+    if ($where_added) {
+        $sql .= " AND b.category_name IN ($category_list)";
+    } else {
         $sql .= " WHERE b.category_name IN ($category_list)";
+        $where_added = true;
     }
 }
-
 
 if (isset($_GET['price'])) {
     $price_range = explode(' - ', $_GET['price']);
@@ -147,12 +150,12 @@ if (isset($_GET['price'])) {
         $max_price = filter_var(str_replace('₱', '', $price_range[1]), FILTER_VALIDATE_FLOAT);
 
         if ($min_price !== false && $max_price !== false && $min_price >= 0 && $max_price >= $min_price) {
-            if (!empty($search)) {
-                $sql .= " AND ";
+            if ($where_added) {
+                $sql .= " AND a.price BETWEEN $min_price AND $max_price";
             } else {
-                $sql .= " WHERE ";
+                $sql .= " WHERE a.price BETWEEN $min_price AND $max_price";
+                $where_added = true;
             }
-            $sql .= " price BETWEEN $min_price AND $max_price";
         }
     }
 }
@@ -219,66 +222,7 @@ $end_index = min($offset + $limit, $total_rows);
                         <!-- Sidebar widget Item End -->
 
                         <!-- Sidebar widget Item Start -->
-                        <div class="sidebar-widget-item">
-                            <h4 class="sidebar-widget-item__title">
-                                Price
-                            </h4>
-                            <div class="sidebar-widget-item__filter price-range-filter">
-                                <?php
-                                $query = "SELECT MIN(price) as min_price, MAX(price) as max_price FROM products";
-                                $result1 = $conn->query($query);
-                                $prices = $result1->fetch_assoc();
-
-                                $min_price = $prices['min_price'];
-                                $max_price = $prices['max_price'];
-
-                                // Default selected prices
-                                $selected_min_price = $min_price;
-                                $selected_max_price = $max_price;
-
-                                if (isset($_GET['price'])) {
-                                    $price_range = explode(' - ', $_GET['price']);
-                                    if (count($price_range) === 2) {
-                                        $selected_min_price = filter_var(str_replace('₱', '', $price_range[0]), FILTER_VALIDATE_FLOAT);
-                                        $selected_max_price = filter_var(str_replace('₱', '', $price_range[1]), FILTER_VALIDATE_FLOAT);
-
-                                        // Validate the selected prices
-                                        if ($selected_min_price === false || $selected_min_price < $min_price) {
-                                            $selected_min_price = $min_price;
-                                        }
-                                        if ($selected_max_price === false || $selected_max_price > $max_price) {
-                                            $selected_max_price = $max_price;
-                                        }
-                                    }
-                                }
-                                ?>
-                                <form action="#" method="get">
-                                    <div class="filter-slider">
-                                        <div class="filter-progress"></div>
-                                    </div>
-                                    <div class="filter-range-input">
-                                        <input type="range" class="range-min" min="<?= number_format($min_price, 0) ?>" max="<?= number_format($max_price, 0) ?>" value="<?= number_format($selected_min_price, 0) ?>" name="rangeMinPrice" />
-                                        <input type="range" class="range-max" min="<?= number_format($min_price, 0) ?>" max="<?= number_format($max_price, 0) ?>" value="<?= number_format($selected_max_price, 0) ?>" name="rangeMaxPrice" />
-                                    </div>
-                                    <p class="filter-price-value">
-                                        Price:
-                                        <input type="text" class="input-min" value="₱<?= number_format($selected_min_price, 0) ?>" name="selectedMinPrice" />
-                                        <span>—</span>
-                                        <input type="text" class="input-max" value="₱<?= number_format($selected_max_price, 0) ?>" name="selectedMaxPrice" />
-                                        <input type="hidden" name="price" class="pricemerge">
-                                    </p>
-                                    <?php
-                                    if (isset($_GET['price'])) { ?>
-                                        <button type="button" onclick="location.replace('flowers.php')" class="filter-price-btn mt-3">Clear</button>
-                                    <?php   }
-                                    ?>
-
-                                    <button type="submit" class="filter-price-btn">
-                                        Filter
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
+                     
                         <!-- Sidebar widget Item End -->
 
     
