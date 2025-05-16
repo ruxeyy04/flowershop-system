@@ -115,7 +115,24 @@
                             <td><?= $row['usertype'] ?></td>
                             <td><?= $row['contact_number'] ?></td>
                             <td class="text-center d-flex"><button class="btn btn-info me-1" data-toggle="modal" data-target="#<?= $modal_id ?>">Edit</button>
-<button class="btn btn-danger ml-1" data-toggle="modal" data-target="#<?= $deleteuser ?>">Delete</button>
+<?php
+// If user is Admin, check if they're the last admin
+if ($row['usertype'] == 'Admin') {
+    $count_admin_stmt = $conn->prepare("SELECT COUNT(*) as admin_count FROM userinfo WHERE usertype = 'Admin'");
+    $count_admin_stmt->execute();
+    $count_result = $count_admin_stmt->get_result();
+    $admin_count = $count_result->fetch_assoc()['admin_count'];
+    $count_admin_stmt->close();
+    
+    // Only show delete button if there's more than one admin
+    if ($admin_count > 1) {
+        echo '<button class="btn btn-danger ml-1" data-toggle="modal" data-target="#' . $deleteuser . '">Delete</button>';
+    }
+} else {
+    // For non-admin users, always show delete button
+    echo '<button class="btn btn-danger ml-1" data-toggle="modal" data-target="#' . $deleteuser . '">Delete</button>';
+}
+?>
                             </td>
                         </tr>
                         <!-- Modal -->
@@ -428,6 +445,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_user'])) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $userid = $_POST['userid'];
 
+    // Check if this is an admin account
+    $check_admin_stmt = $conn->prepare("SELECT usertype FROM userinfo WHERE userid = ?");
+    $check_admin_stmt->bind_param("i", $userid);
+    $check_admin_stmt->execute();
+    $check_result = $check_admin_stmt->get_result();
+    $user_data = $check_result->fetch_assoc();
+    $check_admin_stmt->close();
+
+    // If this is an admin account, count how many admin accounts exist
+    if ($user_data && $user_data['usertype'] == 'Admin') {
+        $count_admin_stmt = $conn->prepare("SELECT COUNT(*) as admin_count FROM userinfo WHERE usertype = 'Admin'");
+        $count_admin_stmt->execute();
+        $count_result = $count_admin_stmt->get_result();
+        $admin_count = $count_result->fetch_assoc()['admin_count'];
+        $count_admin_stmt->close();
+
+        // If this is the only admin account, prevent deletion
+        if ($admin_count <= 1) {
+            $_SESSION['alert'] = "<script>
+            Toast.fire({
+                icon: 'error',
+                title: 'Cannot delete the last Admin user. System requires at least one Admin.',
+            });
+            </script>";
+            echo '<meta http-equiv="refresh" content="0;url=users.php">';
+            exit();
+        }
+    }
+
+    // Proceed with deletion if not the last admin
     $stmt = $conn->prepare("DELETE FROM userinfo WHERE userid = ?");
     $stmt->bind_param("i", $userid);
 
