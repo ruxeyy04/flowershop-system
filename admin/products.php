@@ -56,6 +56,7 @@
                     <th>Description</th>
                     <th>Category</th>
                     <th>Price</th>
+                    <th>Stock</th>
                     <th>Product Date</th>
                     <th>Status</th>
                     <th>Action</th>
@@ -113,6 +114,7 @@
                             <td><?= $row['description'] ?></td>
                             <td><?= $row['category_name'] ?></td>
                             <td>₱ <?= $row['price'] ?></td>
+                            <td><?= $row['stock'] ?? 0 ?></td>
                             <td><?= date('F j, Y', strtotime($row['product_date'])) ?></td>
                             <td><?= $row['status'] ?></td>
                             <td class="text-center d-flex"><button class="btn btn-primary me-1" data-toggle="modal" data-target="#<?= $modal_id ?>">Edit</button>
@@ -145,6 +147,10 @@
                                             <div class="form-group">
                                                 <label for="price<?= $modal_id ?>" class="col-form-label">Price</label>
                                                 <input id="price<?= $modal_id ?>" type="number" class="form-control" placeholder="Price" name="price" value="<?= $row['price'] ?>">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="stock<?= $modal_id ?>" class="col-form-label">Stock</label>
+                                                <input id="stock<?= $modal_id ?>" type="number" class="form-control" placeholder="Stock" name="stock" value="<?= $row['stock'] ?? 0 ?>" min="0">
                                             </div>
                                             <div class="form-group">
                                                 <label for="proddate<?= $modal_id ?>">Product Date</label>
@@ -311,6 +317,10 @@
                         <input id="price" type="number" class="form-control" placeholder="Price" name="price">
                     </div>
                     <div class="form-group">
+                        <label for="stock" class="col-form-label">Stock</label>
+                        <input id="stock" type="number" class="form-control" placeholder="Stock" name="stock" min="0">
+                    </div>
+                    <div class="form-group">
                         <label for="proddate">Product Date</label>
                         <input id="proddate" type="date" placeholder="Date" class="form-control" name="proddate">
                     </div>
@@ -410,11 +420,12 @@ if (isset($_POST['save'])) {
     $prod_name = mysqli_real_escape_string($conn, $_POST['prod_name']);
     $desc = mysqli_real_escape_string($conn, $_POST['desc']);
     $price = mysqli_real_escape_string($conn, $_POST['price']);
+    $stock = mysqli_real_escape_string($conn, $_POST['stock']);
     $cat = mysqli_real_escape_string($conn, $_POST['category']);
     $date = mysqli_real_escape_string($conn, $_POST['proddate']);
     $status = mysqli_real_escape_string($conn, $_POST['status']);
 
-    $sql = "INSERT INTO `products`(`prod_name`, `description`, `price`, `product_date`, `category_id`, `prod_img`, `status`, `created_at`) VALUES ('$prod_name', '$desc', '$price',  '$date','$cat', '$prod_img', '$status', NOW())";
+    $sql = "INSERT INTO `products`(`prod_name`, `description`, `price`, `stock`, `product_date`, `category_id`, `prod_img`, `status`, `created_at`) VALUES ('$prod_name', '$desc', '$price', '$stock', '$date','$cat', '$prod_img', '$status', NOW())";
 
     if (mysqli_query($conn, $sql)) {
         $_SESSION['alert'] = "<script>
@@ -438,6 +449,7 @@ if (isset($_POST['update'])) {
     $prod_name = mysqli_real_escape_string($conn, $_POST['prod_name']);
     $desc = mysqli_real_escape_string($conn, $_POST['desc']);
     $price = mysqli_real_escape_string($conn, $_POST['price']);
+    $stock = mysqli_real_escape_string($conn, $_POST['stock']);
     $cat = mysqli_real_escape_string($conn, $_POST['category']);
     $date = mysqli_real_escape_string($conn, $_POST['proddate']);
     $status = mysqli_real_escape_string($conn, $_POST['status']);
@@ -461,7 +473,7 @@ if (isset($_POST['update'])) {
         $prod_img = $_POST['existing_image'];
     }
     // `products`(`prod_no`, `prod_name`, `description`, `price`, `quantity`, `product_date`, `category_id`, `prod_img`)
-    $sql = "UPDATE products SET prod_name = '$prod_name', `description` = '$desc', `price` = '$price', `product_date` = '$date', `category_id` = '$cat', `prod_img` = '$prod_img', status = '$status' WHERE prod_no = '$prod_no'";
+    $sql = "UPDATE products SET prod_name = '$prod_name', `description` = '$desc', `price` = '$price', `stock` = '$stock', `product_date` = '$date', `category_id` = '$cat', `prod_img` = '$prod_img', status = '$status' WHERE prod_no = '$prod_no'";
 
     if (mysqli_query($conn, $sql)) {
         $_SESSION['alert'] = "<script>
