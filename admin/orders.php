@@ -22,14 +22,26 @@
         <!-- ============================================================== -->
         <!-- end pageheader  -->
         <!-- ============================================================== -->
-        <div class="d-flex justify-content-end">
+        <div class="d-flex justify-content-between mb-3">
+            <div class="d-flex">
+                <!-- Add search bar -->
+                <form class="d-flex" method="GET" action="">
+                    <input type="text" class="form-control me-1" placeholder="Search orders..." name="search" value="<?php echo isset($_GET['search']) ? $_GET['search'] : ''; ?>">
+                    <button type="submit" class="btn btn-primary me-2">Search</button>
+                    <?php if(isset($_GET['search']) && !empty($_GET['search'])): ?>
+                        <a href="orders.php" class="btn btn-secondary me-2">Clear</a>
+                    <?php endif; ?>
+                </form>
+            </div>
             <form class="d-flex align-items-center" method="GET" action="">
-                <select class="form-control mr-1" name="sort" onchange="this.form.submit()">
+                <?php if(isset($_GET['search'])): ?>
+                    <input type="hidden" name="search" value="<?php echo $_GET['search']; ?>">
+                <?php endif; ?>
+                <select class="form-control me-1" name="sort" onchange="this.form.submit()">
                     <option <?php if (isset($_GET['sort']) && $_GET['sort'] == 'asc') echo 'selected'; ?> value="asc">Asc</option>
                     <option <?php if (isset($_GET['sort']) && $_GET['sort'] == 'desc') echo 'selected'; ?> value="desc">Desc</option>
-
                 </select>
-                <select class="form-control mr-1" name="limit" onchange="this.form.submit()">
+                <select class="form-control me-1" name="limit" onchange="this.form.submit()">
                     <option <?php if (isset($_GET['limit']) && $_GET['limit'] == '5') echo 'selected'; ?> value="5">5</option>
                     <option <?php if (isset($_GET['limit']) && $_GET['limit'] == '10') echo 'selected'; ?> value="10">10</option>
                     <option <?php if (isset($_GET['limit']) && $_GET['limit'] == '20') echo 'selected'; ?> value="20">20</option>
@@ -46,9 +58,6 @@
                     <option <?php if (isset($_GET['status']) && $_GET['status'] == 'Cancelled') echo 'selected'; ?> value="Cancelled">Cancelled</option>
                 </select>
             </form>
-            <div class="dropdown ms-auto">
-
-            </div>
         </div>
     </div>
 
@@ -170,21 +179,29 @@
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <h5 class="modal-title" id="exampleModalLabel">Update Order #<?= $order_id ?></h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
                                     </div>
                                     <div class="modal-body">
 
                                         <form method="post" action="">
                                             <div class="mb-3">
                                                 <label for="status" class="form-label">Order Status</label>
-                                                                                                           <select class="form-control" name="status">
-                                                                <option value="Pending" <?= $status == 'Pending' ? 'selected' : '' ?> <?= $status == 'Order Confirmed' || $status == 'On the Way' || $status == 'Delivered' || $status == 'Cancelled' ? 'disabled' : '' ?>>Pending</option>
-                                                                <option value="Order Confirmed" <?= $status == 'Order Confirmed' ? 'selected' : '' ?> <?= $status == 'On the Way' || $status == 'Delivered' || $status == 'Cancelled' ? 'disabled' : '' ?>>Order Confirmed</option>
-                                                                <option value="On the Way" <?= $status == 'On the Way' ? 'selected' : '' ?> <?= $status == 'Delivered' || $status == 'Cancelled' ? 'disabled' : '' ?>>On the Way</option>
-                                                                <option value="Delivered" <?= $status == 'Delivered' ? 'selected' : '' ?> <?= $status == 'Cancelled' ? 'disabled' : '' ?>>Delivered</option>
-                                                                <option value="Cancelled" <?= $status == 'Cancelled' ? 'selected' : '' ?>  <?= $status == 'Order Confirmed' || $status == 'On the Way' || $status == 'Delivered' || $status == 'Cancelled' ? 'disabled' : '' ?> >Cancelled</option>
-                                                            </select>
-
+                                                <select class="form-control" name="status">
+                                                    <?php if($status == 'Pending'): ?>
+                                                        <option value="Order Confirmed">Order Confirmed</option>
+                                                        <option value="Cancelled">Cancelled</option>
+                                                    <?php elseif($status == 'Order Confirmed'): ?>
+                                                        <option value="On the Way">On the Way</option>
+                                                    <?php elseif($status == 'On the Way'): ?>
+                                                        <option value="Delivered">Delivered</option>
+                                                    <?php elseif($status == 'Delivered'): ?>
+                                                        <option value="Completed">Completed</option>
+                                                    <?php elseif($status == 'Cancelled'): ?>
+                                                        <option value="Cancelled" selected>Cancelled</option>
+                                                    <?php endif; ?>
+                                                </select>
                                             </div>
                                             <input type="hidden" name="order_id" value="<?= $order_id ?>">
                                             <button type="submit" class="btn btn-primary" name="update_order">Update</button>
