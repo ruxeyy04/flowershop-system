@@ -54,10 +54,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // If there's a stock error, redirect back with an error message
     if ($stock_error) {
         $_SESSION['checkout_error'] = $error_message;
-        echo '<script>
-            alert("' . str_replace('"', '\"', $error_message) . '");
-            window.location.href = "cart.php";
-        </script>';
+        $_SESSION['alert'] = "<script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Stock Error',
+                html: '" . str_replace("'", "\'", $error_message) . "',
+                confirmButtonText: 'OK'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'viewcart.php';
+                }
+            });
+        </script>";
+        echo '<meta http-equiv="refresh" content="0;url=viewcart.php">';
         exit;
     }
 
