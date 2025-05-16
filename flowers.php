@@ -59,6 +59,14 @@ if (isset($_GET['price'])) {
     }
 }
 
+// Add filter for stock and status
+if ($where_added) {
+    $total_rows_sql .= " AND a.stock > 0 AND a.status = 'Available'";
+} else {
+    $total_rows_sql .= " WHERE a.stock > 0 AND a.status = 'Available'";
+    $where_added = true;
+}
+
 $total_items_query = "SELECT COUNT(*) as total FROM products a INNER JOIN category b ON a.category_id=b.category_id";
 $where_added = false;
 
@@ -99,6 +107,14 @@ if (isset($_GET['price'])) {
             }
         }
     }
+}
+
+// Add filter for stock and status
+if ($where_added) {
+    $total_items_query .= " AND a.stock > 0 AND a.status = 'Available'";
+} else {
+    $total_items_query .= " WHERE a.stock > 0 AND a.status = 'Available'";
+    $where_added = true;
 }
 
 $result_total_items = $conn->query($total_items_query);
@@ -158,6 +174,14 @@ if (isset($_GET['price'])) {
             }
         }
     }
+}
+
+// Add filter for stock and status
+if ($where_added) {
+    $sql .= " AND a.stock > 0 AND a.status = 'Available'";
+} else {
+    $sql .= " WHERE a.stock > 0 AND a.status = 'Available'";
+    $where_added = true;
 }
 
 $sql .= " ORDER BY $sortby_column $sorting
