@@ -1,4 +1,11 @@
-<?php include('layouts/header.php') ?>
+<?php include('layouts/header.php');
+
+// Check if user is logged in, redirect to login page if not
+if (!isset($_SESSION['userid']) || !isset($userinfo)) {
+    header("Location: /login-register.php");
+    exit();
+}
+?>
 <!-- Breadcrumb Start -->
 <div class="breadcrumb-section">
     <div class="container-fluid custom-container">
