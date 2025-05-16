@@ -146,6 +146,15 @@ if ($userid) {
                             </div>
                         </div>
                     </div>
+                    <div class="product-single-content__meta">
+                        <div class="product-single-content__meta--item">
+                            <div class="label">Stock:</div>
+                            <div class="content">
+                                <a href="#"><?= $flower['stock'] ?></a>
+                            </div>  
+                        </div>
+                    </div>
+                    
                 </div>
                 <!-- Product Single content End -->
             </div>
