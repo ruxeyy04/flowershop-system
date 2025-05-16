@@ -24,9 +24,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Generate the order ID
     $order_id = date('ymd') . strtoupper(bin2hex(random_bytes(4)));
 
-    // Get cart items for the user
+    // Get cart items for the user including stock information
     $sql = "
-          SELECT i.prod_no, i.price, c.quantity
+          SELECT i.prod_no, i.price, c.quantity, i.stock, i.prod_name
           FROM carts c
           JOIN products i ON c.prod_no = i.prod_no
           WHERE c.userid = ?
@@ -38,9 +38,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $subtotal = 0;
     $cart_items = [];
+    $stock_error = false;
+    $error_message = "";
+    
     while ($row = $result->fetch_assoc()) {
+        // Check if there's enough stock
+        if ($row['quantity'] > $row['stock']) {
+            $stock_error = true;
+            $error_message .= "Not enough stock for " . $row['prod_name'] . ". Available: " . $row['stock'] . ", Requested: " . $row['quantity'] . "<br>";
+        }
         $cart_items[] = $row;
         $subtotal += $row['price'] * $row['quantity'];
+    }
+    
+    // If there's a stock error, redirect back with an error message
+    if ($stock_error) {
+        $_SESSION['checkout_error'] = $error_message;
+        echo '<script>
+            alert("' . str_replace('"', '\"', $error_message) . '");
+            window.location.href = "cart.php";
+        </script>';
+        exit;
     }
 
     // Assuming free shipping
@@ -56,7 +74,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $orderdetail_sql = "INSERT INTO orderdetail (order_id, prod_no, quantity, price_each) VALUES (?, ?, ?, ?)";
     $orderdetail_stmt = $conn->prepare($orderdetail_sql);
     foreach ($cart_items as $item) {
-        $price_each = $item['price'] *  $item['quantity'];
+        $price_each = $item['price']; // Price for each individual item
         $orderdetail_stmt->bind_param("siii", $order_id, $item['prod_no'], $item['quantity'], $price_each);
         $orderdetail_stmt->execute();
     }
@@ -85,6 +103,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $billing_stmt->execute();
 
 
+    // Update product stock
+    $update_stock_sql = "UPDATE products SET stock = stock - ? WHERE prod_no = ?";
+    $update_stock_stmt = $conn->prepare($update_stock_sql);
+    
+    foreach ($cart_items as $item) {
+        $update_stock_stmt->bind_param("ii", $item['quantity'], $item['prod_no']);
+        $update_stock_stmt->execute();
+    }
+    
     $clear_cart_sql = "DELETE FROM carts WHERE userid = ?";
     $clear_cart_stmt = $conn->prepare($clear_cart_sql);
     $clear_cart_stmt->bind_param("i", $userid);

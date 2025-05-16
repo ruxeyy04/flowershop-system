@@ -396,6 +396,14 @@ $end_index = min($offset + $limit, $total_rows);
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                            <div class="product-single-content__meta">
+                                                                <div class="product-single-content__meta--item">
+                                                                    <div class="label">Stock:</div>
+                                                                    <div class="content">
+                                                                        <a href="#"><?= $row['stock'] ?></a>
+                                                                    </div>  
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                         <!-- Product Single Content End -->
                                                     </div>
