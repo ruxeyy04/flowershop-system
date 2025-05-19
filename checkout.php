@@ -112,14 +112,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $billing_stmt->execute();
 
 
-    // Update product stock
-    $update_stock_sql = "UPDATE products SET stock = stock - ? WHERE prod_no = ?";
-    $update_stock_stmt = $conn->prepare($update_stock_sql);
-    
-    foreach ($cart_items as $item) {
-        $update_stock_stmt->bind_param("ii", $item['quantity'], $item['prod_no']);
-        $update_stock_stmt->execute();
-    }
+    // Stock will be updated when order is confirmed by admin
+    // Removing immediate stock update
     
     $clear_cart_sql = "DELETE FROM carts WHERE userid = ?";
     $clear_cart_stmt = $conn->prepare($clear_cart_sql);

@@ -283,8 +283,9 @@ if (mysqli_num_rows($result = mysqli_query($conn, $sql)) > 0) {
                                     <?php endif; ?>
                                 </select>
                             </div>
-                            <input type="hidden" name="order_id" value="<?= $order_id ?>">
-                            <button type="submit" class="btn btn-primary" name="update_order">Update</button>
+                                                                        <input type="hidden" name="order_id" value="<?= $order_id ?>">
+                                            <input type="hidden" name="old_status" value="<?= $status ?>">
+                                            <button type="submit" class="btn btn-primary" name="update_order">Update</button>
                         </form>
                     </div>
                 </div>
@@ -375,10 +376,34 @@ if (mysqli_num_rows($result = mysqli_query($conn, $sql)) > 0) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_order'])) {
     $order_id = $_POST['order_id'];
     $status = $_POST['status'];
+    $old_status = $_POST['old_status'];
 
     $update_sql = "UPDATE orders SET status = '$status' WHERE order_id = '$order_id'";
     if ($stmt = mysqli_prepare($conn, $update_sql)) {
         if (mysqli_stmt_execute($stmt)) {
+            // Update stock when order is confirmed
+            if ($status == 'Order Confirmed' && $old_status != 'Order Confirmed') {
+                // Get order items
+                $get_items_sql = "
+                    SELECT od.prod_no, od.quantity 
+                    FROM orderdetail od
+                    WHERE od.order_id = '$order_id'
+                ";
+                $items_result = mysqli_query($conn, $get_items_sql);
+                
+                if (mysqli_num_rows($items_result) > 0) {
+                    // Update stock for each item
+                    $update_stock_sql = "UPDATE products SET stock = stock - ? WHERE prod_no = ?";
+                    $update_stock_stmt = mysqli_prepare($conn, $update_stock_sql);
+                    
+                    while ($item = mysqli_fetch_assoc($items_result)) {
+                        mysqli_stmt_bind_param($update_stock_stmt, "ii", $item['quantity'], $item['prod_no']);
+                        mysqli_stmt_execute($update_stock_stmt);
+                    }
+                    mysqli_stmt_close($update_stock_stmt);
+                }
+            }
+            
             $_SESSION['alert'] = "<script>
                                 Toast.fire({
                                     icon: 'success',
